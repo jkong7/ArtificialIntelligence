@@ -1,6 +1,17 @@
 from expand import expand
+from collections import deque
+import heapq 
 
-# TO DO: Implement Breadth-first Search.
+
+def find_path(node_before, start, end): 
+    path=[]
+    current=end 
+    while current!=start: 
+        path.append(current)
+        current=node_before[current]
+    path.append(current)
+    return path[::-1]
+
 def breadth_first_search(time_map, start, end):
     """
     Breadth-first Search
@@ -17,9 +28,21 @@ def breadth_first_search(time_map, start, end):
         path (list): The final path found by the search algorithm
     """
 
-    pass
+    visited=set()
+    node_before={}
+    q=deque([start])
+    while q: 
+        current=q.popleft()
+        if current in visited: 
+            continue 
+        visited.add(current)
+        if current==end: 
+            return list(visited), find_path(node_before, start, end)
+        for neighbor in expand(current, time_map): 
+            if neighbor not in visited and neighbor and neighbor not in node_before: 
+                q.append(neighbor)
+                node_before[neighbor]=current 
 
-# TO DO: Implement Depth-first Search.
 def depth_first_search(time_map, start, end):
     """
     Depth-first Search
@@ -36,8 +59,22 @@ def depth_first_search(time_map, start, end):
         path (list): The final path found by the search algorithm
     """
 
-    pass
+    stack=[start]
+    visited=set()
+    node_before={}
+    while stack: 
+        current=stack.pop()
+        if current in visited: 
+            continue 
+        visited.add(current)
+        if current==end: 
+            return list(visited), find_path(node_before, start, end)
+        for neighbor in expand(current, time_map): 
+            if neighbor not in visited and neighbor not in node_before: 
+                stack.append(neighbor)
+                node_before[neighbor]=current 
 
+                
 # TO DO: Implement Greedy Best-first Search.
 def best_first_search(time_map, dis_map, start, end):
     """
