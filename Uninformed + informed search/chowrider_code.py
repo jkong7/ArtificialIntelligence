@@ -74,9 +74,10 @@ def depth_first_search(time_map, start, end):
                 stack.append(neighbor)
                 node_before[neighbor]=current 
 
-                
-# TO DO: Implement Greedy Best-first Search.
-def best_first_search(time_map, dis_map, start, end):
+def heuristic(dis_map, node, end): 
+    return dis_map[node][end]
+
+def best_first_search(dis_map, time_map, start, end):
     """
     Greedy Best-first Search
 
@@ -94,11 +95,23 @@ def best_first_search(time_map, dis_map, start, end):
         visited (list): A list of visited nodes in the order in which they were visited
         path (list): The final path found by the search algorithm
     """
+    pq=[(heuristic(dis_map, start, end), start)]
+    visited=set()
+    node_before={}
+    while pq: 
+        _, current = heapq.heappop(pq)
+        if current in visited: 
+            continue 
+        visited.add(current)
+        if current==end: 
+            return list(visited), find_path(node_before, start, end)
+        for neighbor in expand(current, time_map): 
+            if neighbor not in visited and neighbor not in node_before: 
+                heapq.heappush(pq, (heuristic(dis_map, neighbor, end), neighbor))
+                node_before[neighbor]=current 
 
-    pass
 
-# TO DO: Implement A* Search.
-def a_star_search(time_map, dis_map, start, end):
+def a_star_search(dis_map, time_map, start, end):
     """
     A* Search
 
@@ -117,4 +130,26 @@ def a_star_search(time_map, dis_map, start, end):
         path (list): The final path found by the search algorithm
     """
 
-    pass
+    entered=0 
+    pq=[(0 + heuristic(dis_map, start, end), heuristic(dis_map, start, end), entered, start)]
+    entered+=1 
+    g_score={start: 0}
+    node_before={}
+    while pq: 
+        _, _, _, current=heapq.heappop(pq)
+        if current==end: 
+            return list(g_score.keys()), find_path(node_before, start, end)
+        for neighbor in expand(current, time_map): 
+            new_g = g_score[current] + time_map[current][neighbor]
+            new_h = heuristic(dis_map, neighbor, end)
+            new_f = new_g + new_h
+            if neighbor not in g_score or new_g<g_score[neighbor]: 
+                g_score[neighbor]=new_g
+                heapq.heappush(pq, (new_f, new_h, entered, neighbor))
+                entered+=1 
+                node_before[neighbor]=current
+
+
+
+
+
