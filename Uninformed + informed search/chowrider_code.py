@@ -1,5 +1,5 @@
 from expand import expand
-from collections import deque
+from collections import deque, defaultdict
 import heapq 
 
 
@@ -39,7 +39,7 @@ def breadth_first_search(time_map, start, end):
         if current==end: 
             return list(visited), find_path(node_before, start, end)
         for neighbor in expand(current, time_map): 
-            if neighbor not in visited and neighbor and neighbor not in node_before: 
+            if neighbor not in visited and neighbor not in node_before: 
                 q.append(neighbor)
                 node_before[neighbor]=current 
 
@@ -70,7 +70,7 @@ def depth_first_search(time_map, start, end):
         if current==end: 
             return list(visited), find_path(node_before, start, end)
         for neighbor in expand(current, time_map): 
-            if neighbor not in visited and neighbor not in node_before: 
+            if neighbor not in visited: 
                 stack.append(neighbor)
                 node_before[neighbor]=current 
 
@@ -95,20 +95,24 @@ def best_first_search(dis_map, time_map, start, end):
         visited (list): A list of visited nodes in the order in which they were visited
         path (list): The final path found by the search algorithm
     """
-    pq=[(heuristic(dis_map, start, end), start)]
+    pq=[(heuristic(dis_map, start, end), start)] 
     visited=set()
     node_before={}
-    while pq: 
+
+    while pq:
         _, current = heapq.heappop(pq)
-        if current in visited: 
-            continue 
+
+        if current in visited:
+            continue
         visited.add(current)
-        if current==end: 
+
+        if current==end:
             return list(visited), find_path(node_before, start, end)
-        for neighbor in expand(current, time_map): 
-            if neighbor not in visited and neighbor not in node_before: 
+
+        for neighbor in expand(current, time_map):
+            if neighbor not in visited: 
                 heapq.heappush(pq, (heuristic(dis_map, neighbor, end), neighbor))
-                node_before[neighbor]=current 
+                node_before[neighbor] = current
 
 
 def a_star_search(dis_map, time_map, start, end):
@@ -130,26 +134,28 @@ def a_star_search(dis_map, time_map, start, end):
         path (list): The final path found by the search algorithm
     """
 
-    entered=0 
-    pq=[(0 + heuristic(dis_map, start, end), heuristic(dis_map, start, end), entered, start)]
-    entered+=1 
-    g_score={start: 0}
+    pq=[(heuristic(dis_map, start, end), 0, 0, start)]
+    g_score=defaultdict(lambda: float('inf'))
+    g_score[start]=0
     node_before={}
-    while pq: 
-        _, _, _, current=heapq.heappop(pq)
-        if current==end: 
-            return list(g_score.keys()), find_path(node_before, start, end)
-        for neighbor in expand(current, time_map): 
-            new_g = g_score[current] + time_map[current][neighbor]
-            new_h = heuristic(dis_map, neighbor, end)
-            new_f = new_g + new_h
-            if neighbor not in g_score or new_g<g_score[neighbor]: 
-                g_score[neighbor]=new_g
-                heapq.heappush(pq, (new_f, new_h, entered, neighbor))
-                entered+=1 
+    visited=set()
+    entered=1
+    while pq:
+        _, current_g, _, current=heapq.heappop(pq)
+
+        if current in visited:
+            continue
+
+        visited.add(current)
+
+        if current==end:
+            return list(visited), find_path(node_before, start, end)
+        
+        for neighbor in expand(current, time_map):
+            tentative_g=current_g+time_map[current][neighbor]
+
+            if tentative_g<g_score[neighbor]:
+                g_score[neighbor]=tentative_g
+                heapq.heappush(pq, (tentative_g+heuristic(dis_map, neighbor, end), tentative_g, entered, neighbor))
+                entered+=1
                 node_before[neighbor]=current
-
-
-
-
-
